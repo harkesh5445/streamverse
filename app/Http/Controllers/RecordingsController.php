@@ -7,8 +7,6 @@ use Illuminate\Http\Request;
 
 class RecordingsController extends Controller
 {
-    // ...existing methods...
-
     public function index()
     {
         $recordings = Recording::latest()->get();
@@ -20,6 +18,4 @@ class RecordingsController extends Controller
         $recording = Recording::findOrFail($id);
         return view('recordings.show', compact('recording'));
     }
-
-    // ...existing methods...
 }
