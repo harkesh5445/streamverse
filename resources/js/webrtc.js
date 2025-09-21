@@ -1,10 +1,6 @@
-// resources/js/webrtc.js
-
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 window.Pusher = Pusher;
-
-// This is where you will define the WebRTC and signaling logic.
 
 const localVideo = document.getElementById('local-video');
 const remoteVideos = document.getElementById('remote-videos');
@@ -30,27 +26,21 @@ let isRecording = false;
 let timerInterval;
 let startTime;
 
-// =================================================================
-// Core WebRTC and Signaling Logic
-// =================================================================
-
-// 1. Get local camera and mic stream
 async function getLocalStream() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
-        localVideo.muted = true; // Mute local video to prevent feedback
+        localVideo.muted = true;
     } catch (err) {
         console.error("Error accessing local media: ", err);
         alert("Could not access your camera or microphone. Please check permissions.");
     }
 }
 
-// 2. Create a peer connection for a new user
 function createPeerConnection(userId) {
     const peerConnection = new RTCPeerConnection({
         iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' } // A public STUN server
+            { urls: 'stun:stun.l.google.com:19302' }
         ]
     });
 
@@ -76,7 +66,6 @@ function createPeerConnection(userId) {
     return peerConnection;
 }
 
-// 3. Send a signaling message to the backend
 function sendSignal(data, recipientId) {
     fetch(`/stream/broadcast/${streamUuid}`, {
         method: 'POST',
@@ -99,7 +88,6 @@ function broadcastSignal(data) {
     });
 }
 
-// 4. Handle incoming signals from the backend
 window.Echo = new Echo({
     broadcaster: 'pusher',
     key: import.meta.env.VITE_PUSHER_APP_KEY,
@@ -109,12 +97,7 @@ window.Echo = new Echo({
 
 window.Echo.private(`stream.${streamUuid}`)
     .listen('StreamSignalEvent', (e) => {
-        // handleSignal(e.data); // You need to implement the handleSignal function
     });
-
-// =================================================================
-// UI and Control Logic
-// =================================================================
 
 function showLiveControls() {
     liveControls.style.display = 'flex';
@@ -128,7 +111,7 @@ function hideLiveControls() {
 
 function stopStream() {
     if (isRecording) {
-        stopRecording(); // This will trigger the onstop event and save the recording
+        stopRecording();
     }
     stopTimer();
 
@@ -142,7 +125,6 @@ function stopStream() {
     hideLiveControls();
 }
 
-// --- Timer ---
 function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
     startTime = Date.now();
@@ -159,7 +141,6 @@ function stopTimer() {
     timerText.textContent = '00:00';
 }
 
-// --- Recording ---
 function startRecording() {
     if (!localStream) {
         alert('No video stream available for recording.');
@@ -189,10 +170,10 @@ function startRecording() {
 
     mediaRecorder.onstop = () => {
         console.log('Recording stopped. Total chunks:', recordedChunks.length);
-        saveRecording(); // This is the ONLY place where saveRecording should be called.
+        saveRecording();
     };
 
-    mediaRecorder.start(1000); // Collect data in chunks
+    mediaRecorder.start(1000);
     console.log('Recording started');
 }
 
@@ -211,7 +192,6 @@ async function saveRecording() {
 
     const blob = new Blob(recordedChunks, { type: 'video/webm' });
 
-    // 1. Download locally
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.display = 'none';
@@ -224,7 +204,6 @@ async function saveRecording() {
         window.URL.revokeObjectURL(url);
     }, 100);
 
-    // 2. Upload to server
     try {
         await saveRecordingToServer(blob);
         console.log('Recording uploaded successfully');
@@ -232,21 +211,18 @@ async function saveRecording() {
         console.error('Recording upload failed', e);
         alert('Failed to upload recording to the server.');
     } finally {
-        recordedChunks = []; // Clear chunks after saving
+        recordedChunks = [];
     }
 }
 
 async function saveRecordingToServer(blob) {
     const formData = new FormData();
     formData.append('recording', blob, `stream-recording.webm`);
-    // You might want to pass the streamUuid as well
-    // formData.append('stream_uuid', streamUuid);
 
     const response = await fetch('/recordings/upload', {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            // 'Content-Type' is set automatically by the browser for FormData
         },
         body: formData
     });
@@ -256,7 +232,6 @@ async function saveRecordingToServer(blob) {
     return response.json();
 }
 
-// --- Layout ---
 function updateLayout() {
     const remoteCount = remoteVideos.querySelectorAll('video').length;
     if (remoteCount > 0) {
@@ -269,10 +244,6 @@ function updateLayout() {
         remoteVideos.classList.remove('grid', 'grid-cols-2');
     }
 }
-
-// =================================================================
-// Event Listeners
-// =================================================================
 
 startBtn.addEventListener('click', async () => {
     await getLocalStream();
@@ -290,7 +261,7 @@ stopBtn.addEventListener('click', () => {
 
 saveStopBtn.addEventListener('click', () => {
     if (confirm('Are you sure you want to stop the stream? The current recording will be saved.')) {
-        stopStream(); // This now correctly handles saving if a recording is in progress
+        stopStream();
     }
 });
 
@@ -331,7 +302,6 @@ toggleLayoutBtn.addEventListener('click', () => {
     remoteVideos.classList.toggle('landscape', isPortrait);
 });
 
-// --- Observers ---
 const observer = new MutationObserver(updateLayout);
 observer.observe(remoteVideos, { childList: true });
 
