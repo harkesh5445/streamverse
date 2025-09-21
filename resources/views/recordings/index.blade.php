@@ -11,7 +11,7 @@
                     @foreach($recordings as $rec)
                         <div class="bg-white rounded-xl shadow p-4 flex flex-col">
                             <video controls class="rounded mb-2 w-full h-48 object-cover bg-black">
-                                <source src="{{ asset('storage/uploads/recordings/' . $rec->filename) }}" type="video/mp4">
+                                <source src="{{ asset('storage/recordings/' . $rec->filename) }}" type="video/webm">
                                 Your browser does not support the video tag.
                             </video>
                             <div class="flex-1">
@@ -19,7 +19,7 @@
                                 <p class="text-xs text-gray-500 mb-2">{{ $rec->created_at->format('M d, Y H:i') }}</p>
                             </div>
                             <div class="flex space-x-2 mt-2">
-                                <a href="{{ asset('storage/uploads/recordings/' . $rec->filename) }}" download class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">Download</a>
+                                <a href="{{ asset('storage/recordings/' . $rec->filename) }}" download class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">Download</a>
                                 <a href="{{ route('recordings.show', $rec->id) }}" class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-xs">Details</a>
                             </div>
                         </div>
